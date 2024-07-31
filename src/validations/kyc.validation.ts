@@ -8,7 +8,15 @@ const verifyAadhar = {
     })
 };
 
+const verifyPAN = {
+    query: Joi.object().keys({
+        pan_number: Joi.string(),
+        name: Joi.string(),
+    })
+};
+
 
 export default {
-    verifyAadhar
+    verifyAadhar,
+    verifyPAN
 };
