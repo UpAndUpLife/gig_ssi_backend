@@ -13,6 +13,16 @@ import routes from './routes/v1';
 import { errorConverter, errorHandler } from './middlewares/error';
 import ApiError from './utils/ApiError';
 
+
+// Declaring Globals
+declare global {
+  var deepvue_api_last_updated: Date;
+  var deepvue_api_key: string | string[] | undefined;
+}
+
+global.deepvue_api_last_updated = new Date();
+
+
 const app = express();
 
 if (config.env !== 'test') {

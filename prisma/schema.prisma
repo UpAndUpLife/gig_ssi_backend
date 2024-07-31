@@ -11,15 +11,16 @@ datasource db {
 }
 
 model User {
-  id              Int      @id @default(autoincrement())
-  email           String   @unique
+  id              Int        @id @default(autoincrement())
+  email           String     @unique
   name            String?
   password        String
-  role            Role     @default(USER)
-  isEmailVerified Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  role            Role       @default(GIG_WORKER)
+  isEmailVerified Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
   Token           Token[]
+  Document        Document[]
 }
 
 model Token {
@@ -33,9 +34,26 @@ model Token {
   userId      Int
 }
 
+model Document {
+  id     Int          @id @default(autoincrement())
+  type   DocumentType @default(AADHAR)
+  number String       @unique
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum DocumentType {
+  AADHAR
+  PAN
+}
+
 enum Role {
-  USER
-  ADMIN
+  GIG_WORKER
+  VERIFIER
 }
 
 enum TokenType {

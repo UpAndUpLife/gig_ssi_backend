@@ -13,7 +13,7 @@ const createUser = async (
   email: string,
   password: string,
   name?: string,
-  role: Role = Role.USER
+  role: Role = Role.GIG_WORKER
 ): Promise<User> => {
   if (await getUserByEmail(email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');

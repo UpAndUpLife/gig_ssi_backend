@@ -25,7 +25,10 @@ const envVarsSchema = Joi.object()
     SMTP_PORT: Joi.number().description('port to connect to the email server'),
     SMTP_USERNAME: Joi.string().description('username for email server'),
     SMTP_PASSWORD: Joi.string().description('password for email server'),
-    EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app')
+    EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
+    DEEPVUE_CLIENT_ID: Joi.string().description('get it from deepvue dashboard client id'),
+    DEEPVUE_CLIENT_SECRET: Joi.string().description('get it from deepvue dashboard client secret'),
+    DEEPVUE_API: Joi.string().description('Deepvue API URL')
   })
   .unknown();
 
@@ -40,6 +43,11 @@ if (error) {
 export default {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
+  deepvue: {
+    client_id: envVars.DEEPVUE_CLIENT_ID,
+    client_secret: envVars.DEEPVUE_CLIENT_SECRET,
+    api_url: envVars.DEEPVUE_API
+  },
   jwt: {
     secret: envVars.JWT_SECRET,
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,
