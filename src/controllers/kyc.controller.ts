@@ -4,27 +4,32 @@ import prisma from '../client';
 import { DocumentType } from '@prisma/client';
 import config from "../config/config";
 import ApiError from '../utils/ApiError';
+import pick from '../utils/pick';
 
 const verifyAadhar = catchAsync(async (req, res) => {
 
-    const { aadhaar_number, mobile_number } = req.body;
+    const aadhar_number= req.query.aadhar_number as string;
+    const mobile_number = req.query.mobile_number as string;
     const user: any = req.user!;
 
-    const resp = await fetch(`${config.deepvue.api_url}/verification/aadhaar?aadhaar_number=${aadhaar_number}`, {
+    console.log(req.headers["deepvue_api_key"])
+
+    const resp = await fetch(`${config.deepvue.api_url}/verification/aadhaar?aadhaar_number=${aadhar_number}`, {
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${global.deepvue_api_key}`,
+            'Authorization': `Bearer ${req.headers["deepvue_api_key"]}`,
             'x-api-key': config.deepvue.client_secret
-        }
+        },
     })
 
+    
     const jsn = await resp.json();
 
 
-    if (jsn.statusCode === 200) {
+    if (jsn.code === 200) {
 
-        if (jsn.sub_code === "INVALID_AADHAAR_NUMBER") {
+        if (jsn.sub_code !== "SUCCESS") {
             throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid Aadhar Number');
         }
 
@@ -44,7 +49,7 @@ const verifyAadhar = catchAsync(async (req, res) => {
             await prisma.document.create({
                 data: {
                     type: DocumentType.AADHAR,
-                    number: aadhaar_number,
+                    number: aadhar_number,
                     userId: user.id,
                 }
             })
@@ -69,3 +74,7 @@ const verifyAadhar = catchAsync(async (req, res) => {
     }
 
 });
+
+export default {
+    verifyAadhar,
+  };

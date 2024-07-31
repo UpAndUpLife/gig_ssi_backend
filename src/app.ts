@@ -20,7 +20,7 @@ declare global {
   var deepvue_api_key: string | string[] | undefined;
 }
 
-global.deepvue_api_last_updated = new Date();
+global.deepvue_api_last_updated = new Date(2023, 2, 20);
 
 
 const app = express();
