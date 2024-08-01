@@ -8,11 +8,10 @@ import pick from '../utils/pick';
 
 const verifyAadhar = catchAsync(async (req, res) => {
 
-    const aadhar_number= req.query.aadhar_number as string;
+    const aadhar_number = req.query.aadhar_number as string;
     const mobile_number = req.query.mobile_number as string;
     const user: any = req.user!;
 
-    console.log(req.headers["deepvue_api_key"])
 
     const resp = await fetch(`${config.deepvue.api_url}/verification/aadhaar?aadhaar_number=${aadhar_number}`, {
         method: "GET",
@@ -23,7 +22,7 @@ const verifyAadhar = catchAsync(async (req, res) => {
         },
     })
 
-    
+
     const jsn = await resp.json();
 
 
@@ -60,12 +59,12 @@ const verifyAadhar = catchAsync(async (req, res) => {
 
         // update the latest verified date
         await prisma.document.update({
-           where: {id: doc?.id},
-           data: {
-            updatedAt: new Date()
-           }
+            where: { id: doc?.id },
+            data: {
+                updatedAt: new Date()
+            }
         })
-        
+
         res.status(httpStatus.CREATED).send("VERIFIED");
         return;
 
@@ -78,7 +77,7 @@ const verifyAadhar = catchAsync(async (req, res) => {
 
 const verifyPAN = catchAsync(async (req, res) => {
 
-    const pan_number= req.query.pan_number as string;
+    const pan_number = req.query.pan_number as string;
     const name = req.query.name as string;
     const user: any = req.user!;
 
@@ -91,7 +90,7 @@ const verifyPAN = catchAsync(async (req, res) => {
         },
     })
 
-    
+
     const jsn = await resp.json();
 
 
@@ -127,12 +126,12 @@ const verifyPAN = catchAsync(async (req, res) => {
 
         // update the latest verified date
         await prisma.document.update({
-           where: {id: doc?.id},
-           data: {
-            updatedAt: new Date()
-           }
+            where: { id: doc?.id },
+            data: {
+                updatedAt: new Date()
+            }
         })
-        
+
         res.status(httpStatus.CREATED).send("VERIFIED");
         return;
 
@@ -142,7 +141,49 @@ const verifyPAN = catchAsync(async (req, res) => {
 
 });
 
+
+
+const creditScore = catchAsync(async (req, res) => {
+
+    const user: any = req.user!;
+
+    let currDate = new Date();
+    console.log(currDate,config.reverify_time)
+
+    currDate.setSeconds(currDate.getSeconds() - (config.reverify_time))
+
+    console.log(currDate)
+
+    const verified_docs = await prisma.document.findMany({
+        where: {
+            userId: user.id,
+            updatedAt: {
+                gte: currDate
+            }
+        }
+    })
+
+    const unverified_docs = await prisma.document.findMany({
+        where: {
+            userId: user.id,
+            updatedAt: {
+                lt: currDate
+            }
+        }
+    })
+    
+
+    res.status(httpStatus.CREATED).send({
+        credit_score: verified_docs.length * 5,
+        verified_docs: verified_docs.map((doc) => doc.type),
+        unverified_docs: unverified_docs.map((doc) => doc.type)
+    });
+
+
+});
+
 export default {
     verifyAadhar,
-    verifyPAN
-  };
+    verifyPAN,
+    creditScore
+};

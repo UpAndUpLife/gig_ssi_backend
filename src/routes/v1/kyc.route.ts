@@ -15,6 +15,9 @@ router
     .route('/pan-verify')
     .get(auth('verifyPAN'), deepvueAPI(), validate(kycValidation.verifyPAN), kycController.verifyPAN);
 
+    router
+    .route('/credit-score')
+    .get(auth('creditScore'), kycController.creditScore);
 
 
 export default router;
@@ -90,4 +93,19 @@ export default router;
  *         $ref: '#/components/responses/Unauthorized'
  *       "403":
  *         $ref: '#/components/responses/Forbidden'
+ */
+
+
+ /**
+ *  @swagger
+ *  /kyc/credit-score:
+ *   get:
+ *     summary: Get Credit score of a gig worker
+ *     description: Only Gig workers can call this.
+ *     tags: [KYC]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:       
+ *       "200":
+ *         description: Credit score info
  */

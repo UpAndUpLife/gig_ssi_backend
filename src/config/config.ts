@@ -28,7 +28,8 @@ const envVarsSchema = Joi.object()
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     DEEPVUE_CLIENT_ID: Joi.string().description('get it from deepvue dashboard client id'),
     DEEPVUE_CLIENT_SECRET: Joi.string().description('get it from deepvue dashboard client secret'),
-    DEEPVUE_API: Joi.string().description('Deepvue API URL')
+    DEEPVUE_API: Joi.string().description('Deepvue API URL'),
+    REVERIFY_TIME: Joi.number().default(10).description('time after which you have to verify the documents')
   })
   .unknown();
 
@@ -43,6 +44,7 @@ if (error) {
 export default {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
+  reverify_time: envVars.REVERIFY_TIME,
   deepvue: {
     client_id: envVars.DEEPVUE_CLIENT_ID,
     client_secret: envVars.DEEPVUE_CLIENT_SECRET,
@@ -65,5 +67,5 @@ export default {
       }
     },
     from: envVars.EMAIL_FROM
-  }
+  },
 };
