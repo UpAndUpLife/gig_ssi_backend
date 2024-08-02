@@ -152,8 +152,6 @@ const creditScore = catchAsync(async (req, res) => {
 
     currDate.setSeconds(currDate.getSeconds() - (config.reverify_time))
 
-    console.log(currDate)
-
     const verified_docs = await prisma.document.findMany({
         where: {
             userId: user.id,
