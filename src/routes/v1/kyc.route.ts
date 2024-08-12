@@ -15,9 +15,13 @@ router
     .route('/pan-verify')
     .get(auth('verifyPAN'), deepvueAPI(), validate(kycValidation.verifyPAN), kycController.verifyPAN);
 
-    router
+router
     .route('/credit-score')
     .get(auth('creditScore'), kycController.creditScore);
+
+router
+    .route('/get-question')
+    .get(auth('getQuestion'), kycController.getQuestion);
 
 
 export default router;
@@ -62,50 +66,79 @@ export default router;
  *         $ref: '#/components/responses/Forbidden'
  */
 
- /**
- *  @swagger
- *  /kyc/pan-verify:
- *   get:
- *     summary: Verify PAN number exists for a given name
- *     description: Only Gig workers can call this.
- *     tags: [KYC]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: pan_number
- *         schema:
- *           type: string
- *         description: PAN card number
- *       - in: query
- *         name: name
- *         schema:
- *           type: string
- *         description: Name on your PAN Card
- *     responses:       
- *       "200":
- *         description: PAN successfully verified
- *       "400":
- *         description: Invalid Pan Details
- *       "500":
- *         description: Deepvue API failed
- *       "401":
- *         $ref: '#/components/responses/Unauthorized'
- *       "403":
- *         $ref: '#/components/responses/Forbidden'
- */
+/**
+*  @swagger
+*  /kyc/pan-verify:
+*   get:
+*     summary: Verify PAN number exists for a given name
+*     description: Only Gig workers can call this.
+*     tags: [KYC]
+*     security:
+*       - bearerAuth: []
+*     parameters:
+*       - in: query
+*         name: pan_number
+*         schema:
+*           type: string
+*         description: PAN card number
+*       - in: query
+*         name: name
+*         schema:
+*           type: string
+*         description: Name on your PAN Card
+*     responses:       
+*       "200":
+*         description: PAN successfully verified
+*       "400":
+*         description: Invalid Pan Details
+*       "500":
+*         description: Deepvue API failed
+*       "401":
+*         $ref: '#/components/responses/Unauthorized'
+*       "403":
+*         $ref: '#/components/responses/Forbidden'
+*/
 
 
- /**
- *  @swagger
- *  /kyc/credit-score:
- *   get:
- *     summary: Get Credit score of a gig worker
- *     description: Only Gig workers can call this.
- *     tags: [KYC]
- *     security:
- *       - bearerAuth: []
- *     responses:       
- *       "200":
- *         description: Credit score info
- */
+/**
+*  @swagger
+*  /kyc/get-question:
+*   get:
+*     summary: get questions 
+*     description: get questions
+*     tags: [KYC]
+*     security:
+*       - bearerAuth: []
+*     parameters:
+*       - in: query
+*         name: userId
+*         schema:
+*           type: string
+*         description: User ID for which the question is required
+*     responses:       
+*       "200":
+*         description: Question and answer
+*       "400":
+*         description: Invalid Pan Details
+*       "500":
+*         description: Deepvue API failed
+*       "401":
+*         $ref: '#/components/responses/Unauthorized'
+*       "403":
+*         $ref: '#/components/responses/Forbidden'
+*/
+
+
+/**
+*  @swagger
+*  /kyc/credit-score:
+*   get:
+*     summary: Get Credit score of a gig worker
+*     description: Only Gig workers can call this.
+*     tags: [KYC]
+*     security:
+*       - bearerAuth: []
+*     responses:       
+*       "200":
+*         description: Credit score info
+*/

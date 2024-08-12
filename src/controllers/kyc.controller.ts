@@ -1,10 +1,12 @@
 import httpStatus from 'http-status';
 import catchAsync from '../utils/catchAsync';
 import prisma from '../client';
-import { DocumentType } from '@prisma/client';
+import { DocumentType, Question, QuestionType, Role } from '@prisma/client';
 import config from "../config/config";
 import ApiError from '../utils/ApiError';
 import pick from '../utils/pick';
+import { randomInt } from 'crypto';
+
 
 const verifyAadhar = catchAsync(async (req, res) => {
 
@@ -12,6 +14,8 @@ const verifyAadhar = catchAsync(async (req, res) => {
     const mobile_number = req.query.mobile_number as string;
     const user: any = req.user!;
 
+    const aadharSplit = aadhar_number.split("");
+    const sum = aadharSplit.reduce((acc, num) => acc + parseInt(num, 10), 0);
 
     // const resp = await fetch(`${config.deepvue.api_url}/verification/aadhaar?aadhaar_number=${aadhar_number}`, {
     //     method: "GET",
@@ -32,8 +36,9 @@ const verifyAadhar = catchAsync(async (req, res) => {
         }
     });
 
+
     if (doc === null) {
-        await prisma.document.create({
+        doc = await prisma.document.create({
             data: {
                 type: DocumentType.AADHAR,
                 number: aadhar_number,
@@ -41,19 +46,66 @@ const verifyAadhar = catchAsync(async (req, res) => {
             }
         })
 
+
+        // generate sum of all digits in aadhar card
+        await prisma.question.create({
+            data: {
+                type: QuestionType.AADHAR_SUM,
+                documentId: doc.id,
+                proof: "",
+                answer: sum.toString()
+            }
+        })
+
+        // generate question for last 4 digits in aadhar card
+        await prisma.question.create({
+            data: {
+                type: QuestionType.AADHAR_LAST_FOUR_DIGITS,
+                documentId: doc.id,
+                proof: "",
+                answer: aadhar_number.slice(aadhar_number.length - aadhar_number.length).toString()
+            }
+        })
+
         res.status(httpStatus.CREATED).send("VERIFIED");
-        return;
     }
 
-    // update the latest verified date
-    await prisma.document.update({
-        where: { id: doc?.id },
-        data: {
-            updatedAt: new Date()
-        }
-    })
+    else {
+        // update the latest verified date
+        await prisma.document.update({
+            where: { id: doc?.id },
+            data: {
+                updatedAt: new Date()
+            }
+        })
 
-    res.status(httpStatus.CREATED).send("VERIFIED");
+
+        // update sum of all digits in aadhar card
+        await prisma.question.updateMany({
+            where: {
+                documentId: doc.id,
+                type: QuestionType.AADHAR_SUM
+            },
+            data: {
+                answer: sum.toString()
+            }
+        })
+
+        // update question for last 4 digits in aadhar card
+        await prisma.question.updateMany({
+            where: {
+                documentId: doc.id,
+                type: QuestionType.AADHAR_LAST_FOUR_DIGITS
+            },
+            data: {
+                answer: aadhar_number.slice(aadhar_number.length - aadhar_number.length).toString()
+            }
+        })
+
+        res.status(httpStatus.CREATED).send("VERIFIED");
+    }
+
+
 
 
     // if (jsn.code === 200) {
@@ -119,7 +171,7 @@ const verifyPAN = catchAsync(async (req, res) => {
     });
 
     if (doc === null) {
-        await prisma.document.create({
+        doc = await prisma.document.create({
             data: {
                 type: DocumentType.PAN,
                 number: pan_number,
@@ -127,24 +179,47 @@ const verifyPAN = catchAsync(async (req, res) => {
             }
         })
 
+        // generate question for last 4 digits in PAN card
+        await prisma.question.create({
+            data: {
+                type: QuestionType.PAN_LAST_4_DIGITS,
+                documentId: doc.id,
+                proof: "",
+                answer: pan_number.slice(pan_number.length - pan_number.length).toString()
+            }
+        })
+
         res.status(httpStatus.CREATED).send("VERIFIED");
-        return;
     }
 
-    // update the latest verified date
-    await prisma.document.update({
-        where: { id: doc?.id },
-        data: {
-            updatedAt: new Date()
-        }
-    })
+    else {
+
+        // update the latest verified date
+        await prisma.document.update({
+            where: { id: doc?.id },
+            data: {
+                updatedAt: new Date()
+            }
+        })
+
+
+        // generate question for last 4 digits in PAN card
+        await prisma.question.updateMany({
+            where: {
+                documentId: doc.id,
+                type: QuestionType.PAN_LAST_4_DIGITS
+            },
+            data: {
+                answer: pan_number.slice(pan_number.length - pan_number.length).toString()
+            }
+        })
 
 
 
-    res.status(httpStatus.CREATED).send("VERIFIED");
+        res.status(httpStatus.CREATED).send("VERIFIED");
+    }
 
 
-    return;
 
     // const resp = await fetch(`${config.deepvue.api_url}/verification/panbasic?pan_number=${pan_number}&name=${name}`, {
     //     method: "GET",
@@ -251,37 +326,91 @@ const creditScore = catchAsync(async (req, res) => {
 
 const getQuestion = catchAsync(async (req, res) => {
 
-    const user: any = req.user!;
+    const userId: string = req.query.userId!.toString();
 
-    let currDate = new Date();
-    console.log(currDate, config.reverify_time)
+    if (typeof userId !== typeof "") {
+        res.status(400).send({
+            message: "Expected user ID"
+        })
+        return; 
+    }
 
-    currDate.setSeconds(currDate.getSeconds() - (config.reverify_time))
-
-    const verified_docs = await prisma.document.findMany({
-        where: {
-            userId: user.id,
-            updatedAt: {
-                gte: currDate
-            }
+    const user = await prisma.user.findFirst({
+        where:{
+            id: parseInt(userId)
         }
-    })
+    });
 
-    const unverified_docs = await prisma.document.findMany({
-        where: {
-            userId: user.id,
-            updatedAt: {
-                lt: currDate
-            }
-        }
-    })
+    if (user === null || user.role !== Role.GIG_WORKER) {
+        res.status(400).send({
+            message: "User does not exist"
+        })
+        return; 
+    }
 
-    console.log(verified_docs);
+
+    const random_question = [QuestionType.AADHAR_LAST_FOUR_DIGITS, QuestionType.AADHAR_SUM, QuestionType.PAN_LAST_4_DIGITS]
+    const _randomInt = Math.floor(Math.random() * 3);
+
+
+    let question = "";
+    let answer = "";
+    let doc:  Question | null = null;
+    console.log(_randomInt)
+
+    switch (random_question[_randomInt]) {
+        case QuestionType.AADHAR_LAST_FOUR_DIGITS:
+            console.log("AADHAR_LAST_FOUR_DIGITS")
+            question = "last 4 digits of your Aadhar"
+            doc = await prisma.question.findFirst({
+                where: {
+                    document: {
+                        userId: user.id
+                    },
+                    type: QuestionType.AADHAR_LAST_FOUR_DIGITS
+                }
+            })
+
+            answer = doc?.answer!
+            break;
+
+        case QuestionType.AADHAR_SUM:
+            console.log("AADHAR_SUM")
+            question = "Enter Sum of your Aadhar Number"
+            doc = await prisma.question.findFirst({
+                where: {
+                    document: {
+                        userId: user.id
+                    },
+                    type: QuestionType.AADHAR_SUM
+                }
+            })
+            
+            answer = doc?.answer!
+            break;
+
+        case QuestionType.PAN_LAST_4_DIGITS:
+            console.log("PAN_LAST_4_DIGITS")
+            question = "last 4 digits of your PAN"
+            doc = await prisma.question.findFirst({
+                where: {
+                    document: {
+                        userId: user.id
+                    },
+                    type: QuestionType.PAN_LAST_4_DIGITS
+                }
+            })
+
+            answer = doc?.answer!
+            break;
+            
+    }
+
+    console.log(answer,question)
 
     res.status(httpStatus.CREATED).send({
-        credit_score: verified_docs.length * 5,
-        verified_docs: verified_docs.map((doc) => doc.type),
-        unverified_docs: unverified_docs.map((doc) => doc.type)
+        question,
+        answer
     });
 
 
@@ -294,5 +423,6 @@ const getQuestion = catchAsync(async (req, res) => {
 export default {
     verifyAadhar,
     verifyPAN,
-    creditScore
+    creditScore,
+    getQuestion
 };

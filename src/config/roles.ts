@@ -1,7 +1,7 @@
 import { Role } from '@prisma/client';
 
 const allRoles = {
-  [Role.GIG_WORKER]: ['verifyAadhar','verifyPAN', 'creditScore','getUsers', 'getMe'],
+  [Role.GIG_WORKER]: ['verifyAadhar','verifyPAN', 'creditScore','getUsers', 'getMe','getQuestion'],
   [Role.VERIFIER]: ['verifyAadhar', 'verifyPAN','creditScore','getUsers', 'getMe']
 };
 
