@@ -52,6 +52,7 @@ export default router;
  *               - name
  *               - email
  *               - password
+ *               - role
  *             properties:
  *               name:
  *                 type: string
@@ -59,6 +60,9 @@ export default router;
  *                 type: string
  *                 format: email
  *                 description: must be unique
+ *               role:
+ *                 type: string
+ *                 description: GIG_WORKER / VERIFIER
  *               password:
  *                 type: string
  *                 format: password
@@ -67,6 +71,7 @@ export default router;
  *             example:
  *               name: fake name
  *               email: fake@example.com
+ *               role: GIG_WORKER
  *               password: password1
  *     responses:
  *       "201":
