@@ -63,7 +63,7 @@ const verifyAadhar = catchAsync(async (req, res) => {
                 type: QuestionType.AADHAR_LAST_FOUR_DIGITS,
                 documentId: doc.id,
                 proof: "",
-                answer: aadhar_number.slice(aadhar_number.length - aadhar_number.length).toString()
+                answer: aadhar_number.slice(aadhar_number.length - 4 ,aadhar_number.length).toString()
             }
         })
 
@@ -98,7 +98,7 @@ const verifyAadhar = catchAsync(async (req, res) => {
                 type: QuestionType.AADHAR_LAST_FOUR_DIGITS
             },
             data: {
-                answer: aadhar_number.slice(aadhar_number.length - aadhar_number.length).toString()
+                answer: aadhar_number.slice(aadhar_number.length -4 ,aadhar_number.length).toString()
             }
         })
 
@@ -185,7 +185,7 @@ const verifyPAN = catchAsync(async (req, res) => {
                 type: QuestionType.PAN_LAST_4_DIGITS,
                 documentId: doc.id,
                 proof: "",
-                answer: pan_number.slice(pan_number.length - pan_number.length).toString()
+                answer: pan_number.slice(pan_number.length - 4 ,pan_number.length).toString()
             }
         })
 
@@ -210,7 +210,7 @@ const verifyPAN = catchAsync(async (req, res) => {
                 type: QuestionType.PAN_LAST_4_DIGITS
             },
             data: {
-                answer: pan_number.slice(pan_number.length - pan_number.length).toString()
+                answer: pan_number.slice(pan_number.length - 4 , pan_number.length).toString()
             }
         })
 
