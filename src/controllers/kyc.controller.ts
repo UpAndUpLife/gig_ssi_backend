@@ -410,7 +410,8 @@ const getQuestion = catchAsync(async (req, res) => {
 
     res.status(httpStatus.CREATED).send({
         question,
-        answer
+        answer,
+        user
     });
 
 
