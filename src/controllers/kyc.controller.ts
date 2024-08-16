@@ -406,12 +406,26 @@ const getQuestion = catchAsync(async (req, res) => {
             
     }
 
-    console.log(answer,question)
+    // get trust score of gig worker 
+    let currDate = new Date();
+    console.log(currDate, config.reverify_time)
+
+    currDate.setSeconds(currDate.getSeconds() - (config.reverify_time))
+
+    const verified_docs = await prisma.document.findMany({
+        where: {
+            userId: user.id,
+            updatedAt: {
+                gte: currDate
+            }
+        }
+    })
 
     res.status(httpStatus.CREATED).send({
         question,
         answer,
-        user
+        user,
+        trust_score: verified_docs.length * 5
     });
 
 
